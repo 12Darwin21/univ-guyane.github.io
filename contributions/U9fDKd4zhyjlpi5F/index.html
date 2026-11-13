@@ -1,522 +1,123 @@
+Claude
+
+
+Frise voie lactee courte · HTML
 <!doctype html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contribution — La Voie lactée</title>
-    <style>
-      .vlx *, .vlx *::before, .vlx *::after {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      .vlx {
-        all: initial;
-        display: block;
-        position: relative;
-        height: 420px;
-        overflow: hidden;
-        font-family: "Segoe UI", system-ui, sans-serif;
-        color: #f3eefc;
-        background:
-          radial-gradient(ellipse at 50% 52%, #1d1036 0%, #0a0516 55%, #030208 100%);
-      }
-
-      .vlx canvas {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        cursor: grab;
-        touch-action: pan-y;
-      }
-
-      .vlx canvas:focus-visible {
-        outline: 2px solid #f5c26b;
-        outline-offset: -4px;
-      }
-
-      .vlx .ui {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-      }
-
-      .vlx .col {
-        position: relative;
-        max-width: 420px;
-        height: 100%;
-        margin: 0 auto;
-      }
-
-      .vlx .title {
-        position: absolute;
-        top: 14px;
-        left: 16px;
-        right: 16px;
-        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
-      }
-
-      .vlx .title strong {
-        display: block;
-        font: italic 700 1.35rem/1.15 Georgia, "Times New Roman", serif;
-        color: #f5c26b;
-      }
-
-      .vlx .title span {
-        display: block;
-        margin-top: 3px;
-        font-size: 0.76rem;
-        color: #e4dcf5;
-      }
-
-      .vlx .title span + span {
-        font-size: 0.68rem;
-        color: #a99fc4;
-      }
-
-      .vlx .note {
-        position: absolute;
-        top: 74px;
-        left: 14px;
-        right: 14px;
-        padding: 10px 34px 10px 12px;
-        border-radius: 12px;
-        border-left: 6px solid var(--accent, #f5c26b);
-        color: #1a1033;
-        background: #f4f0ff;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-        opacity: 0;
-        transform: translateY(-8px);
-        pointer-events: none;
-        transition: opacity 0.2s, transform 0.2s;
-      }
-
-      .vlx .note.open {
-        opacity: 1;
-        transform: none;
-        pointer-events: auto;
-      }
-
-      .vlx .note b {
-        font-size: 0.95rem;
-      }
-
-      .vlx .note em {
-        display: block;
-        font-size: 0.72rem;
-        color: #5a4d7a;
-      }
-
-      .vlx .note p {
-        margin-top: 4px;
-        font-size: 0.8rem;
-        line-height: 1.35;
-      }
-
-      .vlx .note button {
-        position: absolute;
-        top: 6px;
-        right: 8px;
-        width: 24px;
-        height: 24px;
-        border: 0;
-        border-radius: 50%;
-        background: transparent;
-        font-size: 1.2rem;
-        line-height: 1;
-        color: #1a1033;
-        cursor: pointer;
-      }
-
-      .vlx .views {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 12px;
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-      }
-
-      .vlx .views button {
-        padding: 7px 14px;
-        border-radius: 999px;
-        border: 1px solid rgba(245, 194, 107, 0.5);
-        font: 600 0.78rem "Segoe UI", system-ui, sans-serif;
-        color: #f5c26b;
-        background: rgba(10, 5, 22, 0.75);
-        cursor: pointer;
-        pointer-events: auto;
-      }
-
-      .vlx .views button.on {
-        color: #1a1033;
-        background: #f5c26b;
-      }
-
-      .vlx .views button:focus-visible,
-      .vlx .note button:focus-visible {
-        outline: 2px solid #fff;
-        outline-offset: 2px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="vlx">
-      <canvas
-        data-canvas
-        tabindex="0"
-        role="img"
-        aria-label="La Voie lactée, galaxie spirale barrée. Flèches gauche et droite pour la faire tourner."
-      ></canvas>
-
-      <div class="ui">
-        <div class="col">
-          <div class="title">
-            <strong>La Voie lactée</strong>
-            <span>100 000 années-lumière de large. Glisse pour tourner, touche un point.</span>
-            <span>Vue d’artiste : on ne peut pas voir notre galaxie de l’extérieur.</span>
-          </div>
-
-          <div class="note" data-note role="status">
-            <button type="button" data-close aria-label="Fermer">×</button>
-            <b data-n-name></b>
-            <em data-n-sub></em>
-            <p data-n-fact></p>
-          </div>
-
-          <div class="views">
-            <button type="button" data-view="0">De dessus</button>
-            <button type="button" data-view="1" class="on">En biais</button>
-            <button type="button" data-view="1.52">De côté</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <script>
-      (function () {
-        var B = 2.75; // enroulement de la spirale (pas de ~20°)
-        var BAR = 0.28; // demi-longueur de la barre (rayon de la galaxie = 1)
-        var ARM0 = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
-
-        var PALETTE = [
-          "rgba(255,217,160,0.75)", // 0 bulbe chaud
-          "rgba(255,190,120,0.7)",  // 1 bulbe orangé
-          "rgba(255,239,210,0.8)",  // 2 barre
-          "rgba(174,203,255,0.75)", // 3 bras bleutés
-          "rgba(214,228,255,0.7)",  // 4 disque
-          "rgba(255,255,255,0.9)",  // 5 étoiles brillantes
-          "rgba(255,143,184,0.8)",  // 6 nébuleuses roses
-          "rgba(143,227,255,0.75)"  // 7 jeunes étoiles bleues
-        ];
-
-        function armAngle(k, r) { return ARM0[k] + B * Math.log(r / BAR); }
-
-        var MARKERS = [
-          {
-            id: "sun", x: 0.52 * Math.cos(armAngle(1, 0.52)), y: 0.52 * Math.sin(armAngle(1, 0.52)), z: 0,
-            color: "#ffe27a", label: "Tu es ici", always: true,
-            name: "Le Soleil", sub: "Bras d’Orion, à environ 26 000 années-lumière du centre",
-            fact: "Le Système solaire fait le tour de la galaxie en 230 millions d’années environ. Il se trouve dans un bras secondaire, loin des régions les plus denses."
-          },
-          {
-            id: "sgra", x: 0, y: 0, z: 0,
-            color: "#ff8fb8", label: "Sagittarius A*",
-            name: "Sagittarius A*", sub: "Trou noir supermassif au centre de la galaxie",
-            fact: "Il pèse environ 4 millions de fois la masse du Soleil. Son image a été obtenue en 2022 par le réseau de radiotélescopes Event Horizon Telescope."
-          },
-          {
-            id: "bar", x: 0.23, y: 0.02, z: 0,
-            color: "#ffd9a0", label: "Barre centrale",
-            name: "La barre centrale", sub: "Étoiles alignées au cœur de la galaxie",
-            fact: "Le centre de la Voie lactée est traversé par une barre d’étoiles d’environ 27 000 années-lumière de long. Les grands bras spiraux partent de ses extrémités."
-          },
-          {
-            id: "perseus", x: 0.78 * Math.cos(armAngle(0, 0.78)), y: 0.78 * Math.sin(armAngle(0, 0.78)), z: 0,
-            color: "#8fe3ff", label: "Bras de Persée",
-            name: "Bras de Persée", sub: "Grand bras spiral",
-            fact: "C’est l’un des deux grands bras de la galaxie. Il est plus loin du centre que nous et abrite de vastes régions où naissent des étoiles."
-          },
-          {
-            id: "sagittarius", x: 0.4 * Math.cos(armAngle(3, 0.4)), y: 0.4 * Math.sin(armAngle(3, 0.4)), z: 0,
-            color: "#aecbff", label: "Bras du Sagittaire",
-            name: "Bras du Sagittaire", sub: "Bras secondaire, plus près du centre que le Soleil",
-            fact: "Il contient des nébuleuses célèbres comme la nébuleuse de la Lagune et la nébuleuse de l’Aigle, vues depuis la Terre vers la constellation du Sagittaire."
-          }
-        ];
-
-        document.querySelectorAll(".vlx:not([data-ready])").forEach(init);
-
-        function mulberry(a) {
-          return function () {
-            a |= 0; a = (a + 0x6d2b79f5) | 0;
-            var t = Math.imul(a ^ (a >>> 15), 1 | a);
-            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-          };
-        }
-
-        function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
-
-        function init(root) {
-          root.setAttribute("data-ready", "1");
-          var $ = function (s) { return root.querySelector(s); };
-          var canvas = $("[data-canvas]");
-          var ctx = canvas.getContext("2d");
-          var note = $("[data-note]");
-          var nName = $("[data-n-name]"), nSub = $("[data-n-sub]"), nFact = $("[data-n-fact]");
-          var buttons = root.querySelectorAll("[data-view]");
-
-          var rnd = mulberry(42);
-          function gauss() {
-            var u = 1 - rnd(), v = rnd();
-            return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-          }
-
-          // ---------- Génération des étoiles ----------
-          var list = [];
-          function add(x, y, z, c, big) { list.push([x, y, z, c, big ? 2 : 1]); }
-          var i;
-
-          for (i = 0; i < 1800; i++) { // bulbe
-            add(gauss() * 0.1, gauss() * 0.1, gauss() * 0.075, rnd() < 0.6 ? 0 : 1, rnd() < 0.05);
-          }
-          for (i = 0; i < 900; i++) { // barre
-            add((rnd() * 2 - 1) * 0.3, gauss() * 0.035, gauss() * 0.03, rnd() < 0.7 ? 2 : 1, rnd() < 0.05);
-          }
-          var weights = [0.32, 0.18, 0.32, 0.18];
-          for (i = 0; i < 5400; i++) { // bras
-            var roll = rnd(), k = 0, acc = weights[0];
-            while (roll > acc && k < 3) { k++; acc += weights[k]; }
-            var r = BAR + (1 - BAR) * Math.pow(rnd(), 1.2);
-            var th = armAngle(k, r) + gauss() * (0.2 + 0.12 * r);
-            var q = rnd(), c;
-            if (q < 0.6) c = 3; else if (q < 0.75) c = 7; else if (q < 0.9) c = 4; else if (q < 0.96) c = 6; else c = 5;
-            add(r * Math.cos(th), r * Math.sin(th), gauss() * 0.012 * (1 + r), c, c === 5 || rnd() < 0.04);
-          }
-          for (i = 0; i < 900; i++) { // disque diffus
-            var rr = 0.1 + 0.9 * Math.sqrt(rnd()), tt = rnd() * Math.PI * 2;
-            add(rr * Math.cos(tt), rr * Math.sin(tt), gauss() * 0.015, 4, false);
-          }
-          list.sort(function (a, b) { return a[3] - b[3]; });
-
-          var N = list.length;
-          var sx = new Float32Array(N), sy = new Float32Array(N), sz = new Float32Array(N);
-          var sc = new Uint8Array(N), ss = new Uint8Array(N);
-          for (i = 0; i < N; i++) {
-            sx[i] = list[i][0]; sy[i] = list[i][1]; sz[i] = list[i][2];
-            sc[i] = list[i][3]; ss[i] = list[i][4];
-          }
-
-          var bg = [];
-          for (i = 0; i < 140; i++) bg.push([rnd(), rnd(), rnd() * 6.28, 0.3 + rnd() * 0.6]);
-
-          // ---------- État ----------
-          var W = 0, H = 0, R = 0, cx = 0, cy = 0, dpr = 1;
-          var spin = 0.4, tilt = 1, tiltTarget = 1;
-          var dragging = false, lastX = 0, lastY = 0, moved = 0;
-          var hovered = null, current = null;
-          var screen = [];
-          var last = performance.now();
-
-          function resize() {
-            var r = root.getBoundingClientRect();
-            W = r.width; H = r.height;
-            dpr = Math.min(window.devicePixelRatio || 1, 2);
-            canvas.width = Math.round(W * dpr);
-            canvas.height = Math.round(H * dpr);
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            R = Math.min(W * 0.5, H * 0.5) * 0.8;
-            cx = W / 2;
-            cy = H / 2 + 4;
-          }
-          resize();
-          if (window.ResizeObserver) new ResizeObserver(resize).observe(root);
-          else window.addEventListener("resize", resize);
-
-          // ---------- Dessin ----------
-          function frame(now) {
-            var dt = Math.min((now - last) / 1000, 0.1);
-            last = now;
-            if (!dragging) {
-              spin += dt * 0.06;
-              tilt += (tiltTarget - tilt) * Math.min(1, dt * 5);
-            }
-
-            var cs = Math.cos(spin), sn = Math.sin(spin);
-            var ct = Math.cos(tilt), st = Math.sin(tilt);
-
-            ctx.clearRect(0, 0, W, H);
-            ctx.globalCompositeOperation = "source-over";
-
-            for (var b = 0; b < bg.length; b++) {
-              var o = bg[b];
-              ctx.fillStyle = "rgba(255,255,255," + (o[3] * (0.6 + 0.4 * Math.sin(now / 900 + o[2]))).toFixed(2) + ")";
-              ctx.fillRect(o[0] * W, o[1] * H, 1, 1);
-            }
-
-            // Halos
-            var flat = Math.max(ct, 0.28);
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.scale(1, flat);
-            var g1 = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 1.05);
-            g1.addColorStop(0, "rgba(140,120,255,0.16)");
-            g1.addColorStop(1, "rgba(140,120,255,0)");
-            ctx.fillStyle = g1;
-            ctx.beginPath();
-            ctx.arc(0, 0, R * 1.05, 0, 6.2832);
-            ctx.fill();
-            ctx.restore();
-
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.scale(1, Math.max(ct, 0.5));
-            var g2 = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.38);
-            g2.addColorStop(0, "rgba(255,200,120,0.6)");
-            g2.addColorStop(0.5, "rgba(255,150,90,0.18)");
-            g2.addColorStop(1, "rgba(255,150,90,0)");
-            ctx.fillStyle = g2;
-            ctx.beginPath();
-            ctx.arc(0, 0, R * 0.38, 0, 6.2832);
-            ctx.fill();
-            ctx.restore();
-
-            // Étoiles
-            ctx.globalCompositeOperation = "lighter";
-            var cur = -1;
-            for (var n = 0; n < N; n++) {
-              if (sc[n] !== cur) { cur = sc[n]; ctx.fillStyle = PALETTE[cur]; }
-              var x = sx[n], y = sy[n], z = sz[n];
-              var x1 = x * cs - y * sn;
-              var y1 = x * sn + y * cs;
-              ctx.fillRect(cx + x1 * R, cy + (y1 * ct - z * st) * R, ss[n], ss[n]);
-            }
-            ctx.globalCompositeOperation = "source-over";
-
-            // Repères
-            screen.length = 0;
-            ctx.font = "600 12px 'Segoe UI', system-ui, sans-serif";
-            ctx.textBaseline = "middle";
-            for (var m = 0; m < MARKERS.length; m++) {
-              var mk = MARKERS[m];
-              var mx1 = mk.x * cs - mk.y * sn;
-              var my1 = mk.x * sn + mk.y * cs;
-              var px = cx + mx1 * R;
-              var py = cy + (my1 * ct - mk.z * st) * R;
-              screen.push({ m: mk, x: px, y: py });
-
-              var pulse = 6 + 2 * Math.sin(now / 450 + m);
-              var active = current === mk.id || hovered === mk.id;
-              ctx.strokeStyle = mk.color;
-              ctx.lineWidth = active ? 2.2 : 1.4;
-              ctx.beginPath();
-              ctx.arc(px, py, pulse + (active ? 2 : 0), 0, 6.2832);
-              ctx.stroke();
-              ctx.fillStyle = mk.color;
-              ctx.beginPath();
-              ctx.arc(px, py, mk.id === "sun" ? 3.2 : 1.8, 0, 6.2832);
-              ctx.fill();
-
-              if (mk.always || active) {
-                var tx = px + 12;
-                var tw = ctx.measureText(mk.label).width;
-                if (tx + tw > W - 6) tx = px - 12 - tw;
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = "rgba(5,2,12,0.85)";
-                ctx.strokeText(mk.label, tx, py - 12);
-                ctx.fillStyle = "#fff";
-                ctx.fillText(mk.label, tx, py - 12);
-              }
-            }
-
-            requestAnimationFrame(frame);
-          }
-          requestAnimationFrame(frame);
-
-          // ---------- Interaction ----------
-          function pick(ev) {
-            var r = canvas.getBoundingClientRect();
-            var x = ev.clientX - r.left, y = ev.clientY - r.top;
-            var best = null, bd = 18;
-            for (var s = 0; s < screen.length; s++) {
-              var d = Math.hypot(screen[s].x - x, screen[s].y - y);
-              if (d < bd) { bd = d; best = screen[s].m; }
-            }
-            return best;
-          }
-
-          function openNote(mk) {
-            current = mk.id;
-            note.style.setProperty("--accent", mk.color);
-            nName.textContent = mk.name;
-            nSub.textContent = mk.sub;
-            nFact.textContent = mk.fact;
-            note.classList.add("open");
-          }
-
-          function closeNote() {
-            current = null;
-            note.classList.remove("open");
-          }
-
-          function setView(v, btn) {
-            tiltTarget = v;
-            buttons.forEach(function (x) { x.classList.toggle("on", x === btn); });
-          }
-
-          canvas.addEventListener("pointerdown", function (e) {
-            dragging = true; moved = 0;
-            lastX = e.clientX; lastY = e.clientY;
-            canvas.setPointerCapture(e.pointerId);
-            canvas.style.cursor = "grabbing";
-          });
-
-          canvas.addEventListener("pointermove", function (e) {
-            if (dragging) {
-              var dx = e.clientX - lastX, dy = e.clientY - lastY;
-              lastX = e.clientX; lastY = e.clientY;
-              moved += Math.abs(dx) + Math.abs(dy);
-              spin += dx * 0.008;
-              if (e.pointerType !== "touch") {
-                tilt = clamp(tilt + dy * 0.006, 0, 1.52);
-                tiltTarget = tilt;
-                buttons.forEach(function (x) { x.classList.remove("on"); });
-              }
-            } else {
-              var h = pick(e);
-              hovered = h ? h.id : null;
-              canvas.style.cursor = h ? "pointer" : "grab";
-            }
-          });
-
-          function release(e) {
-            if (!dragging) return;
-            dragging = false;
-            canvas.style.cursor = hovered ? "pointer" : "grab";
-            if (moved < 5) {
-              var h = pick(e);
-              if (h) openNote(h); else closeNote();
-            }
-          }
-          canvas.addEventListener("pointerup", release);
-          canvas.addEventListener("pointercancel", function () { dragging = false; });
-          canvas.addEventListener("pointerleave", function () { if (!dragging) hovered = null; });
-
-          canvas.addEventListener("keydown", function (e) {
-            if (e.key === "ArrowLeft") { spin -= 0.15; e.preventDefault(); }
-            if (e.key === "ArrowRight") { spin += 0.15; e.preventDefault(); }
-          });
-
-          $("[data-close]").addEventListener("click", closeNote);
-          buttons.forEach(function (btn) {
-            btn.addEventListener("click", function () { setView(parseFloat(btn.getAttribute("data-view")), btn); });
-          });
-        }
-      })();
-    </script>
-  </body>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contribution — La Voie lactée</title>
+<style>
+  .vlx *{margin:0;padding:0;box-sizing:border-box}
+  .vlx{all:initial;display:block;position:relative;height:420px;overflow:hidden;
+    font-family:"Segoe UI",system-ui,sans-serif;color:#f3eefc;
+    background:radial-gradient(ellipse at 50% 52%,#1d1036,#030208)}
+  .vlx canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:pan-y}
+  .vlx .t{position:absolute;top:14px;left:16px;right:16px;text-shadow:0 1px 8px #000;pointer-events:none}
+  .vlx .t b{display:block;font:italic 700 1.35rem Georgia,serif;color:#f5c26b}
+  .vlx .t span{font-size:.76rem}
+  .vlx .n{display:none;position:absolute;left:14px;right:14px;bottom:14px;max-width:392px;margin:0 auto;
+    padding:10px 12px;border-radius:12px;background:#f4f0ff;color:#1a1033;font-size:.8rem;line-height:1.35}
+  .vlx .n b{display:block;font-size:.95rem}
+</style>
+</head>
+<body>
+<div class="vlx">
+  <canvas role="img" aria-label="La Voie lactée, galaxie spirale barrée"></canvas>
+  <div class="t"><b>La Voie lactée</b><span>Glisse pour tourner et incliner, touche un point.</span></div>
+  <div class="n"></div>
+</div>
+ 
+<script>
+document.querySelectorAll(".vlx:not([data-r])").forEach(function (root) {
+  root.dataset.r = 1;
+  var cv = root.querySelector("canvas"), ctx = cv.getContext("2d"), box = root.querySelector(".n");
+  var B = 2.75, S = 0.28, A = [0, 1.57, 3.14, 4.71], seed = 7;
+ 
+  function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+  function gauss() { return Math.sqrt(-2 * Math.log(1 - rnd())) * Math.cos(6.283 * rnd()); }
+  function arm(k, r) { return A[k] + B * Math.log(r / S); }
+  function pos(k, r) { var t = arm(k, r); return [r * Math.cos(t), r * Math.sin(t)]; }
+ 
+  // Étoiles : [x, y, z, couleur]
+  var P = [], i;
+  for (i = 0; i < 1500; i++) P.push([gauss() * 0.1, gauss() * 0.1, gauss() * 0.07, "rgba(255,210,150,.7)"]);
+  for (i = 0; i < 700; i++) P.push([(rnd() * 2 - 1) * 0.3, gauss() * 0.03, gauss() * 0.03, "rgba(255,235,200,.8)"]);
+  for (i = 0; i < 5500; i++) {
+    var k = rnd() < 0.64 ? (rnd() < 0.5 ? 0 : 2) : (rnd() < 0.5 ? 1 : 3);
+    var r = S + (1 - S) * Math.pow(rnd(), 1.2), t = arm(k, r) + gauss() * (0.2 + 0.12 * r);
+    P.push([r * Math.cos(t), r * Math.sin(t), gauss() * 0.015,
+      rnd() < 0.15 ? "rgba(255,150,190,.8)" : "rgba(175,205,255,.7)"]);
+  }
+  P.sort(function (a, b) { return a[3] < b[3] ? -1 : 1; });
+ 
+  // Repères : [nom, x, y, texte, couleur]
+  var sun = pos(1, 0.52), per = pos(0, 0.78);
+  var M = [
+    ["Le Soleil", sun[0], sun[1], "À environ 26 000 années-lumière du centre, dans un bras secondaire. Il fait le tour de la galaxie en 230 millions d’années.", "#ffe27a"],
+    ["Sagittarius A*", 0, 0, "Trou noir supermassif d’environ 4 millions de masses solaires, photographié en 2022.", "#ff8fb8"],
+    ["La barre centrale", 0.23, 0.02, "Une barre d’étoiles d’environ 27 000 années-lumière de long traverse le centre. Les grands bras en partent.", "#ffd9a0"],
+    ["Bras de Persée", per[0], per[1], "L’un des deux grands bras de la galaxie, plus loin du centre que nous.", "#8fe3ff"]
+  ];
+ 
+  var W, H, R, sp = 0.4, ti = 1, drag, mv, lx, ly, sc = [];
+ 
+  function size() {
+    var b = root.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    W = b.width; H = b.height; cv.width = W * d; cv.height = H * d;
+    ctx.setTransform(d, 0, 0, d, 0, 0); R = Math.min(W, H) * 0.4;
+  }
+  size();
+  addEventListener("resize", size);
+ 
+  function draw() {
+    if (!drag) sp += 0.001;
+    var c = Math.cos(sp), s = Math.sin(sp), ct = Math.cos(ti), st = Math.sin(ti), cur;
+    ctx.clearRect(0, 0, W, H);
+ 
+    ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(1, Math.max(ct, 0.5));
+    var g = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.4);
+    g.addColorStop(0, "rgba(255,200,120,.6)"); g.addColorStop(1, "rgba(255,150,90,0)");
+    ctx.fillStyle = g; ctx.fillRect(-R, -R, 2 * R, 2 * R); ctx.restore();
+ 
+    ctx.globalCompositeOperation = "lighter";
+    P.forEach(function (p) {
+      if (p[3] !== cur) ctx.fillStyle = cur = p[3];
+      ctx.fillRect(W / 2 + (p[0] * c - p[1] * s) * R, H / 2 + ((p[0] * s + p[1] * c) * ct - p[2] * st) * R, 1.2, 1.2);
+    });
+    ctx.globalCompositeOperation = "source-over";
+ 
+    ctx.font = "600 12px Segoe UI, sans-serif";
+    M.forEach(function (m, n) {
+      var x = W / 2 + (m[1] * c - m[2] * s) * R, y = H / 2 + (m[1] * s + m[2] * c) * ct * R;
+      sc[n] = [x, y];
+      ctx.strokeStyle = m[4]; ctx.beginPath(); ctx.arc(x, y, 7, 0, 6.3); ctx.stroke();
+      if (!n) { ctx.fillStyle = "#fff"; ctx.fillText("Tu es ici", x + 12, y - 10); }
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+ 
+  cv.onpointerdown = function (e) { drag = 1; mv = 0; lx = e.clientX; ly = e.clientY; cv.setPointerCapture(e.pointerId); };
+  cv.onpointercancel = function () { drag = 0; };
+  cv.onpointermove = function (e) {
+    if (!drag) return;
+    var dx = e.clientX - lx, dy = e.clientY - ly;
+    lx = e.clientX; ly = e.clientY; mv += Math.abs(dx) + Math.abs(dy); sp += dx * 0.008;
+    if (e.pointerType != "touch") ti = Math.max(0, Math.min(1.52, ti + dy * 0.006));
+  };
+  cv.onpointerup = function (e) {
+    drag = 0;
+    if (mv > 4) return;
+    var b = cv.getBoundingClientRect(), x = e.clientX - b.left, y = e.clientY - b.top, k = -1;
+    sc.forEach(function (q, n) { if (Math.hypot(q[0] - x, q[1] - y) < 18) k = n; });
+    box.style.display = k < 0 ? "none" : "block";
+    if (k >= 0) box.innerHTML = "<b>" + M[k][0] + "</b>" + M[k][3];
+  };
+});
+</script>
+</body>
 </html>
+ 
+Claude a terminé sa réponse.
